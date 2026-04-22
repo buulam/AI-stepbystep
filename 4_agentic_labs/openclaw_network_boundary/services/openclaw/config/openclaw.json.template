@@ -1,0 +1,39 @@
+{
+  "models": {
+    "providers": {
+      "ollama": {
+        "baseUrl": "http://ollama:11434",
+        "apiKey": "ollama-local",
+        "api": "ollama",
+        "models": [
+          {
+            "id": "${OLLAMA_CHAT_MODEL}",
+            "name": "Local LLM",
+            "contextWindow": 32768
+          }
+        ]
+      }
+    }
+  },
+  "tools": {
+    "profile": "full"
+  },
+  "gateway": {
+    "port": 19000,
+    "mode": "local",
+    "auth": {
+      "mode": "token",
+      "token": "${GATEWAY_TOKEN}"
+    },
+    "trustedProxies": ["172.16.0.0/12"],
+    "controlUi": {
+      "allowedOrigins": [
+        "http://localhost:19000",
+        "http://127.0.0.1:19000",
+        "http://${OPENCLAW_HOST}:${OPENCLAW_HOST_PORT}",
+        "https://${OPENCLAW_HOST}:${OPENCLAW_HOST_PORT}",
+        "https://${ACME_DOMAIN}:${OPENCLAW_HOST_PORT}"
+      ]
+    }
+  }
+}
