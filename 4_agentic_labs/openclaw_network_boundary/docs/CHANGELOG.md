@@ -1,5 +1,15 @@
 # Changelog
 
+## [1.0.2] — 2026-04-23
+
+### Changed
+- Replaced the multi-stage Rust-based nginx Dockerfile with a single `FROM nginx:1.30.0-otel` — the official otel image ships with both `ngx_otel_module` and `ngx_http_acme_module` pre-installed, eliminating the builder stage, Rust toolchain, and custom apt source entirely
+
+## [1.0.1] — 2026-04-23
+
+### Changed
+- Updated nginx base image from `nginx:1.27` to `nginx:1.30.0` (released 2026-04-14)
+
 ## [1.0.0] — 2026-04-22
 
 Initial release.
