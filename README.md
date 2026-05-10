@@ -4,6 +4,7 @@
 </p>
 
 # Welcome to AI Step-by-Step
+
 Getting started with AI is surpisingly simple and can begin completely free. These lab guides provide hands-on learning paths for those who want to build their own AI environments from the ground up, whith options that scale affordably: start with completely free tools and resources, progress to intermediate setups, or advance to professiona-grade environments that you can directly apply to real world use cases as your skills and needs grow.
 
 These labs are community-driven and constantly evolving. Spot an improvement or catch an error? We'd love your contribution via Pull Request, or just reach out to the repository contributors.
@@ -11,6 +12,7 @@ These labs are community-driven and constantly evolving. Spot an improvement or 
 ## Lab Guides
 
 ### Getting Started
+
 - Text focused labs
   - [Running your first AI model locally with Ollama](/1_text_labs/ollama_basics/readme.md)
     - [x] [Mac](/1_text_labs/ollama_basics/ollama_mac.md)
@@ -23,10 +25,11 @@ These labs are community-driven and constantly evolving. Spot an improvement or 
     - [ ] [Creating your own pattern](/1_text_labs/fabric/custom_patterns.md)
 
 ### Next Steps: Adding a GUI and Going Beyond Text
-  - [x] [Open WebUI front end](/1_text_labs/open-webui/README.md)
-    - [x] [Add OpenAI models to your Open WebUI via API key](/1_text_labs/open-webui/02-openai.md)
-    - [x] [Connect a local Ollama instance to your Open WebUI](1_text_labs/open-webui/03-ollama.md)
-    - [x] [Add MCP services to Open WebUI](1_text_labs/open-webui/04-mcpo.md)
+
+- [x] [Open WebUI front end](/1_text_labs/open-webui/README.md)
+  - [x] [Add OpenAI models to your Open WebUI via API key](/1_text_labs/open-webui/02-openai.md)
+  - [x] [Connect a local Ollama instance to your Open WebUI](1_text_labs/open-webui/03-ollama.md)
+  - [x] [Add MCP services to Open WebUI](1_text_labs/open-webui/04-mcpo.md)
 - Audio focused labs
   - [ ] Transcribe an audio file
   - [ ] Voice generation
@@ -38,30 +41,37 @@ These labs are community-driven and constantly evolving. Spot an improvement or 
   - [ ] Add object detection to your security camera with Frigate
 
 ### Expanding Your Knowledge: Running Agents
-- Agentic focused labs
-  - Agentic platforms
+
+- AI Agents
+  - AI Agent Platforms
     - [n8n](4_agentic_labs/n8n/readme.md)
       - [x] [Installing n8n](4_agentic_labs/n8n/readme.md)
     - Flowise
       - [ ] Installing Flowise
+- Agentic AI
   - Agentic security labs
     - [x] [OpenClaw Network Boundary](4_agentic_labs/openclaw_network_boundary/README.md) — Run OpenClaw inside a secure network envelope with TLS termination, mitmproxy outbound interception, and OpenTelemetry observability *(v1.1.0)*
-      
+
 ## Community hardware builds
+
 Need ideas for what your home lab could look like? Want to confirm compatible parts? Here are labs of our Community members.
+
 - [Buu Lam](builds/buu_lam.md)
 
-## Raspberri Pi case
+## Raspberry Pi case
+
 Are you running a lab that uses a Raspberry Pi 5 and it needs a home?
 
 Check out this design for a case: [pi-case](/pi-case/README.md)
 
 ## Additional learning resources
+
 - F5's solutions offer tremendous value once you have learned how to build AI. Here are some labs that introduce those solutions. [Secure deliver optimize GenAI](https://github.com/f5devcentral/secure-deliver-optimize-genai)
 
 - Here are some [more labs](morelabs.md) we've come across. PR's are welcome!
 
 ## Contributors
+
 <a href="https://github.com/f5devcentral/ai-stepbystep/graphs/contributors">
   <img src="https://contrib.rocks/image?repo=f5devcentral/ai-stepbystep" />
 </a>
