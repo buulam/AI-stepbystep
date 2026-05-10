@@ -1,0 +1,31 @@
+# Copyright (c) 2026 markosluga
+# SPDX-License-Identifier: Apache-2.0
+#
+# OpenTelemetry Collector — receives spans from mitmproxy (outbound) and
+# nginx (inbound), writes JSON Lines to a persistent local volume.
+
+receivers:
+  otlp:
+    protocols:
+      grpc:
+        endpoint: 0.0.0.0:4317
+
+processors:
+  batch:
+    timeout: 5s
+    send_batch_size: 512
+
+exporters:
+  file:
+    path: /data/network-boundary-traffic.jsonl
+    rotation:
+      max_megabytes: 100
+      max_days: 30
+      max_backups: 10
+
+service:
+  pipelines:
+    traces:
+      receivers: [otlp]
+      processors: [batch]
+      exporters: [file]

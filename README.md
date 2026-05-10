@@ -44,6 +44,8 @@ These labs are community-driven and constantly evolving. Spot an improvement or 
       - [x] [Installing n8n](4_agentic_labs/n8n/readme.md)
     - Flowise
       - [ ] Installing Flowise
+  - Agentic security labs
+    - [x] [OpenClaw Network Boundary](4_agentic_labs/openclaw_network_boundary/README.md) — Run OpenClaw inside a secure network envelope with TLS termination, mitmproxy outbound interception, and OpenTelemetry observability *(v1.1.0)*
       
 ## Community hardware builds
 Need ideas for what your home lab could look like? Want to confirm compatible parts? Here are labs of our Community members.

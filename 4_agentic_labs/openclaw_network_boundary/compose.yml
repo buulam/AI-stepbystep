@@ -1,0 +1,167 @@
+# Copyright (c) 2026 markosluga
+# SPDX-License-Identifier: Apache-2.0
+#
+# OpenClaw Network Boundary — Docker Compose
+# Full self-contained stack: OpenClaw gateway + Ollama LLM + TLS termination +
+# outbound traffic inspection via mitmproxy + OpenTelemetry observability.
+#
+# Required variables (set in .env — see .env.example):
+#   GATEWAY_TOKEN, OPENCLAW_HOST, OPENCLAW_HOST_PORT,
+#   OLLAMA_MODEL, OLLAMA_CHAT_MODEL,
+#   ACME_DOMAIN, ACME_EMAIL
+#
+# TLS certificates are issued and renewed by ngx_http_acme_module (HTTP-01).
+# Port 80 must be publicly reachable from the internet for ACME challenges.
+#
+# Jetson (arm64):  set OLLAMA_RUNTIME=nvidia in .env, then: docker compose up
+# x86:             set OLLAMA_RUNTIME= (empty) in .env, then: docker compose up
+
+services:
+
+  # ── OpenClaw gateway ────────────────────────────────────────────────────────
+  openclaw:
+    build:
+      context: ./services/openclaw
+      dockerfile: Dockerfile
+    container_name: openclaw
+    restart: unless-stopped
+    environment:
+      GATEWAY_TOKEN: ${GATEWAY_TOKEN}
+      OPENCLAW_USER: ${OPENCLAW_USER:-}
+      OLLAMA_MODEL: ${OLLAMA_MODEL:-qwen2.5:3b}
+      OLLAMA_CHAT_MODEL: ${OLLAMA_CHAT_MODEL:-qwen2.5:3b}
+      # Route all outbound traffic through mitmproxy
+      HTTP_PROXY: http://mitmproxy:8080
+      HTTPS_PROXY: http://mitmproxy:8080
+      NO_PROXY: ollama,otel-collector,localhost,127.0.0.1
+      # Trust mitmproxy CA cert for Node.js TLS
+      NODE_EXTRA_CA_CERTS: /certs/mitmproxy-ca.pem
+      # Host IP/hostname used in CORS origins
+      OPENCLAW_HOST: ${OPENCLAW_HOST}
+      OPENCLAW_HOST_PORT: ${OPENCLAW_HOST_PORT:-19000}
+      ACME_DOMAIN: ${ACME_DOMAIN}
+    cap_add:
+      - NET_ADMIN
+    volumes:
+      - mitm-certs:/certs:ro
+      - openclaw-state:/root/.openclaw
+    networks:
+      - net-internal
+      - net-proxy
+      - net-ingress
+    depends_on:
+      - ollama
+      - mitmproxy
+    expose:
+      - "19000"
+
+  # ── Ollama LLM backend ──────────────────────────────────────────────────────
+  # Default: official Ollama binary built for Jetson (JetPack 6, nvidia runtime)
+  # x86 override: compose.override.x86.yml swaps to ollama/ollama:latest
+  ollama:
+    build:
+      context: ./services/ollama
+      dockerfile: Dockerfile
+    container_name: ollama
+    restart: unless-stopped
+    runtime: ${OLLAMA_RUNTIME:-}
+    environment:
+      OLLAMA_HOST: "0.0.0.0:11434"
+      OLLAMA_FLASH_ATTENTION: "1"
+      OLLAMA_KV_CACHE_TYPE: q8_0
+      OLLAMA_CONTEXT_LENGTH: "32768"
+      OLLAMA_MODEL: ${OLLAMA_MODEL:-qwen2.5:3b}
+    volumes:
+      - ollama-models:/data/models/ollama/models
+      - ./services/ollama/entrypoint.sh:/entrypoint.sh:ro
+    entrypoint: ["/bin/bash", "/entrypoint.sh"]
+    networks:
+      - net-internal
+      - net-pull
+
+  # ── mitmproxy forward proxy ─────────────────────────────────────────────────
+  mitmproxy:
+    build:
+      context: ./services/mitmproxy
+      dockerfile: Dockerfile
+    container_name: mitmproxy
+    restart: unless-stopped
+    volumes:
+      - mitm-certs:/home/mitmproxy/.mitmproxy
+    networks:
+      - net-proxy
+      - net-telemetry
+    expose:
+      - "8080"
+    ports:
+      - "8081:8081"
+
+  # ── nginx inbound reverse proxy + ACME cert management ─────────────────────
+  # ngx_http_acme_module runs inside nginx — no external tooling needed.
+  # Port 80 must be publicly reachable for the HTTP-01 challenge.
+  nginx:
+    build:
+      context: ./services/nginx
+      dockerfile: Dockerfile
+    container_name: nginx
+    restart: unless-stopped
+    environment:
+      ACME_DOMAIN: ${ACME_DOMAIN}
+      ACME_EMAIL: ${ACME_EMAIL}
+      BACKEND_HOST: openclaw
+      BACKEND_PORT: "19000"
+    ports:
+      - "${OPENCLAW_HOST_PORT:-19000}:19000"
+      - "80:80"
+    volumes:
+      - ./services/nginx/nginx.conf.template:/etc/nginx/nginx.conf.template:ro
+      - nginx-acme-state:/var/cache/nginx/acme-letsencrypt
+    networks:
+      - net-ingress
+      - net-telemetry
+      - net-pull
+    depends_on:
+      - openclaw
+      - otel-collector
+
+  # ── OpenTelemetry Collector ─────────────────────────────────────────────────
+  otel-collector:
+    image: otel/opentelemetry-collector-contrib:latest
+    container_name: otel-collector
+    restart: unless-stopped
+    user: "0"
+    command: ["--config=/etc/otel/collector.yaml"]
+    volumes:
+      - ./services/otel/collector.yaml:/etc/otel/collector.yaml:ro
+      - otel-data:/data
+    networks:
+      - net-telemetry
+    expose:
+      - "4317"
+
+# ── Named volumes ───────────────────────────────────────────────────────────
+volumes:
+  mitm-certs:
+  otel-data:
+  nginx-acme-state:
+  openclaw-state:
+  ollama-models:
+
+# ── Networks ────────────────────────────────────────────────────────────────
+networks:
+  # LLM inference path — openclaw ↔ ollama only; no external routing
+  net-internal:
+    internal: true
+
+  # Inbound path — nginx ↔ openclaw
+  net-ingress:
+
+  # Outbound proxy path — openclaw → mitmproxy → internet
+  net-proxy:
+
+  # Telemetry path — nginx, mitmproxy, otel-collector; internal only
+  net-telemetry:
+    internal: true
+
+  # Internet access for ollama model pulls and nginx ACME challenges
+  net-pull: {}
